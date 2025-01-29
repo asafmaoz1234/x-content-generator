@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import json
-from lambda_handler import lambda_handler
+from main import lambda_handler
 from prompt_builder import build_prompt
-from x_poster import post_to_x
+from x_post_util import post_to_x
 
 class TestContentGenerator(unittest.TestCase):
     def setUp(self):
@@ -22,8 +22,8 @@ class TestContentGenerator(unittest.TestCase):
             'detail-type': 'Scheduled Event'
         }
 
-    @patch('lambda_handler.openai')
-    @patch('lambda_handler.post_to_x')
+    @patch('main.openai')
+    @patch('main.post_to_x')
     def test_lambda_handler_sqs(self, mock_post_to_x, mock_openai):
         # Mock OpenAI response
         mock_openai.chat.completions.create.return_value = MagicMock(
@@ -53,7 +53,7 @@ class TestContentGenerator(unittest.TestCase):
         self.assertIn('morning', prompt)
         self.assertIn('social media post', prompt)
 
-    @patch('x_poster.tweepy')
+    @patch('x_post_util.tweepy')
     def test_post_to_x(self, mock_tweepy):
         mock_client = MagicMock()
         mock_client.create_tweet.return_value = MagicMock(

@@ -1,20 +1,35 @@
-import openai
-import os
+from typing import Dict, Any
 
-# Load OpenAI API Key from environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-def generate_tweet(data):
+def build_prompt(message: Dict[Any, Any], event_type: str) -> str:
     """
-    Generates a tweet based on input data.
+    Builds a prompt for OpenAI based on the event data.
+    
+    Args:
+        message: The message data from SQS or EventBridge
+        event_type: Type of event ('sqs' or 'schedule')
+        
+    Returns:
+        str: Generated prompt for OpenAI
     """
-    prompt = f"Write a concise, engaging tweet about {data['topic']} in a casual tone."
+    if event_type == 'sqs':
+        # Extract relevant fields from SQS message
+        topic = message.get('topic', 'general')
+        keywords = message.get('keywords', [])
+        tone = message.get('tone', 'professional')
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=50
-    )
+        prompt = f"""
+        Create a social media post about {topic}.
+        Keywords to include: {', '.join(keywords)}
+        Tone: {tone}
+        Keep the content engaging and within X's character limit.
+        """
 
-    tweet = response["choices"][0]["message"]["content"].strip()
-    return tweet
+    else:  # schedule event
+        current_hour = message.get('time', 'morning')
+        prompt = f"""
+        Create a {current_hour} social media post that would engage our audience.
+        Include trending topics if relevant.
+        Keep the content engaging and within X's character limit.
+        """
+
+    return prompt.strip()
