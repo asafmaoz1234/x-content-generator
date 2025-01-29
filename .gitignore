@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.env/
+.env
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Python dependencies
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# IDEs
+.idea/
+.vscode/
+
+# AWS credentials
+*.pem
+*.key
+.aws/
+
+*.iml
