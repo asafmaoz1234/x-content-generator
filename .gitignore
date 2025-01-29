@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+deployment-package/*
+.idea/*
 # Virtual environment
 .env/
 .env
