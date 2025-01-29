@@ -5,13 +5,12 @@ __pycache__/
 
 deployment-package/*
 .idea/*
+.idea
+.idea/workspace.xml
+
 # Virtual environment
 .env/
 .env
-
-# Docker
-*.log
-docker-compose.override.yml
 
 # Python dependencies
 *.egg
@@ -20,14 +19,4 @@ dist/
 build/
 pip-wheel-metadata/
 
-# IDEs
-.idea/
-.idea/workspace.xml
-.vscode/
-
-# AWS credentials
-*.pem
-*.key
-.aws/
-
-*.iml
+function.zip

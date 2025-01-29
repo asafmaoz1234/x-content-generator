@@ -12,7 +12,7 @@ This AWS Lambda function automatically generates and posts content to X (formerl
 
 ## Prerequisites
 
-- Python 3.9+
+- Python 3.11+
 - AWS account with Lambda access
 - OpenAI API key
 - X Developer account and API credentials
@@ -32,48 +32,111 @@ X_ACCESS_TOKEN_SECRET=your_x_access_token_secret
 ## Installation
 
 1. Clone this repository
-2. Install dependencies:
+2. Install dependencies for local development:
    ```bash
    pip install -r requirements.txt
    ```
 
 ## Deployment
 
-1. Create a ZIP file containing all the code and dependencies:
+### Creating the Lambda Deployment Package
+
+1. Create a fresh directory for your deployment package:
    ```bash
-   zip -r function.zip .
+   mkdir deployment-package
+   cd deployment-package
    ```
 
-2. Deploy to AWS Lambda using the AWS Console or CLI:
+2. Install dependencies for AWS Lambda (Linux):
    ```bash
-   aws lambda update-function-code --function-name YourFunctionName --zip-file fileb://function.zip
+   pip install --platform manylinux2014_x86_64 \
+       --implementation cp \
+       --python-version 3.11 \
+       --only-binary=:all: \
+       --target . \
+       openai tweepy python-json-logger
    ```
+
+3. Copy the Lambda function files:
+   ```bash
+   cp ../main.py .
+   cp ../prompt_builder.py .
+   cp ../x_poster.py .
+   cp ../logger_util.py .
+   ```
+
+4. Create the deployment ZIP file:
+   ```bash
+   zip -r ../function.zip .
+   ```
+
+### Alternative: Using Docker for Deployment Package
+
+If you're on Windows or experiencing issues with the direct installation method:
+
+1. Create a Dockerfile:
+   ```dockerfile
+   FROM public.ecr.aws/lambda/python:3.11
+   
+   COPY requirements.txt .
+   RUN pip install --no-cache-dir -r requirements.txt
+   
+   COPY main.py .
+   COPY prompt_builder.py .
+   COPY x_poster.py .
+   COPY logger_util.py .
+   
+   RUN zip -r function.zip .
+   ```
+
+2. Build and run:
+   ```bash
+   docker build -t lambda-builder .
+   docker run --name lambda-builder lambda-builder
+   docker cp lambda-builder:/function.zip .
+   ```
+
+### Deploying to AWS Lambda
+
+1. Create a new Lambda function in AWS Console:
+   - Runtime: Python 3.11
+   - Handler: main.lambda_handler
+   - Architecture: x86_64
+
+2. Upload the deployment package:
+   - Go to the Lambda console
+   - Select your function
+   - Click "Upload from" → ".zip file"
+   - Upload your function.zip
+
+3. Configure environment variables in AWS Console
+
+4. Set up triggers (SQS/EventBridge) as needed
 
 ## Testing
 
+### Local Testing
 Run the unit tests:
 ```bash
 python -m unittest discover tests
 ```
 
-## SQS Message Format
+### AWS Lambda Test Events
 
-Example SQS message:
+SQS message test event:
 ```json
 {
-    "topic": "technology",
-    "keywords": ["AI", "future"],
-    "tone": "excited"
+    "Records": [{
+        "body": "{\"topic\":\"technology\",\"keywords\":[\"AI\",\"future\"],\"tone\":\"excited\"}"
+    }]
 }
 ```
 
-## EventBridge Schedule Format
-
-Example EventBridge event:
+EventBridge test event:
 ```json
 {
-    "time": "morning",
-    "detail-type": "Scheduled Event"
+   "time": "morning",
+   "detail-type": "Scheduled Event"
 }
 ```
 
