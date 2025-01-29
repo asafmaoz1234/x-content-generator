@@ -2,11 +2,11 @@ import json
 import os
 from typing import Dict, Any
 import openai
-import tweepy
 from datetime import datetime
 
 from prompt_builder import build_prompt
 from x_post_util import post_to_x
+
 
 def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
     """

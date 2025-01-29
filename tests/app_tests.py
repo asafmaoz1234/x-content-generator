@@ -1,9 +1,13 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 import json
 from main import lambda_handler
 from prompt_builder import build_prompt
 from x_post_util import post_to_x
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class TestContentGenerator(unittest.TestCase):
     def setUp(self):
@@ -21,6 +25,18 @@ class TestContentGenerator(unittest.TestCase):
             'time': 'morning',
             'detail-type': 'Scheduled Event'
         }
+
+    def test_environment_variables(self):
+        required_vars = [
+            'OPENAI_API_KEY',
+            'X_CONSUMER_KEY',
+            'X_CONSUMER_SECRET',
+            'X_ACCESS_TOKEN',
+            'X_ACCESS_TOKEN_SECRET'
+        ]
+
+        for var in required_vars:
+            assert os.getenv(var) is not None, f"Missing environment variable: {var}"
 
     @patch('main.openai')
     @patch('main.post_to_x')

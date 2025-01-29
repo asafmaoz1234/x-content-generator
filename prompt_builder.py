@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+
 def build_prompt(message: Dict[Any, Any], event_type: str) -> str:
     """
     Builds a prompt for OpenAI based on the event data.

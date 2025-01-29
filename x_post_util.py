@@ -1,6 +1,6 @@
 import os
 import tweepy
-from typing import Optional
+
 
 def post_to_x(content: str) -> str:
     """
