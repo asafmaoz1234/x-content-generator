@@ -1,6 +1,5 @@
 import os
 import tweepy
-from typing import Optional
 from logger_util import logger
 
 
