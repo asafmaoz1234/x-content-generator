@@ -23,6 +23,7 @@ The following environment variables must be set in your Lambda function:
 
 ```
 OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-4  # or gpt-3.5-turbo, etc.
 X_CONSUMER_KEY=your_x_consumer_key
 X_CONSUMER_SECRET=your_x_consumer_secret
 X_ACCESS_TOKEN=your_x_access_token
@@ -43,18 +44,18 @@ X_ACCESS_TOKEN_SECRET=your_x_access_token_secret
 
 1. Create a fresh directory for your deployment package:
    ```bash
-   mkdir deployment-package
+   mkdir -p deployment-package/prompts
    cd deployment-package
    ```
 
 2. Install dependencies for AWS Lambda (Linux):
    ```bash
    pip install --platform manylinux2014_x86_64 \
-       --implementation cp \
-       --python-version 3.11 \
-       --only-binary=:all: \
-       --target . \
-       openai tweepy python-json-logger
+      --implementation cp \
+      --python-version 3.11 \
+      --only-binary=:all: \
+      --target . \
+      openai tweepy python-json-logger
    ```
 
 3. Copy the Lambda function files:
@@ -63,6 +64,7 @@ X_ACCESS_TOKEN_SECRET=your_x_access_token_secret
    cp ../prompt_builder.py .
    cp ../x_poster.py .
    cp ../logger_util.py .
+   cp ../prompts/social_media_prompt.txt ./prompts/
    ```
 
 4. Create the deployment ZIP file:

@@ -5,8 +5,20 @@ import openai
 from datetime import datetime
 
 from prompt_builder import build_prompt
-from x_post_util import post_to_x
+from x_poster import post_to_x
 from logger_util import logger
+
+
+def load_prompt_template() -> str:
+    """Load the prompt template from file."""
+    try:
+        with open('prompts/social_media_prompt.txt', 'r') as file:
+            return file.read()
+    except Exception as e:
+        logger.error(f'Error loading prompt template: {str(e)}')
+        # Fallback to basic prompt if file can't be loaded
+        return "You are a social media content creator.\nCreate a {time_of_day} post about {topic}.\nTone: {tone}"
+
 
 def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
     """
@@ -19,6 +31,10 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
     try:
         # Initialize OpenAI client
         openai.api_key = os.environ['OPENAI_API_KEY']
+        model = os.environ.get('OPENAI_MODEL', 'gpt-4')  # Default to gpt-4 if not specified
+
+        # Load prompt template
+        prompt_template = load_prompt_template()
 
         # Determine event source and extract relevant data
         if 'Records' in event:  # SQS event
@@ -34,15 +50,14 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
 
         # Build prompt based on event data
         logger.info('Building prompt', extra={'extra_data': {'event_type': event_type}})
-        prompt = build_prompt(message, event_type)
+        prompt = build_prompt(message, event_type, prompt_template)
 
         # Generate content using OpenAI
-        logger.info('Calling OpenAI API')
+        logger.info('Calling OpenAI API', extra={'extra_data': {'model': model}})
         response = openai.chat.completions.create(
-            model="gpt-4",
+            model=model,
             messages=[
-                {"role": "system", "content": "You are a social media content creator."},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": prompt}
             ],
             max_tokens=280,  # X character limit
             temperature=0.7
