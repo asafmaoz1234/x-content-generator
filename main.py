@@ -17,7 +17,7 @@ def load_prompt_template() -> str:
     except Exception as e:
         logger.error(f'Error loading prompt template: {str(e)}')
         # Fallback to basic prompt if file can't be loaded
-        return "You are a social media content creator.\nCreate a {time_of_day} post about {topic}.\nTone: {tone}"
+        return "You are a social media content creator.\nCreate a post about {topic}.\nTone: {tone}"
 
 
 def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:

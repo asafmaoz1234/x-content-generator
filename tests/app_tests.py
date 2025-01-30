@@ -12,7 +12,7 @@ class TestContentGenerator(unittest.TestCase):
         # Sample prompt template for testing
         self.prompt_template = """
         You are a social media content creator.
-        Create a {time_of_day} social media post about {topic}.
+        Create a social media post about {topic}.
         Keywords to include: {keywords}
         Tone: {tone}
         """
@@ -23,8 +23,7 @@ class TestContentGenerator(unittest.TestCase):
                 'body': json.dumps({
                     'topic': 'technology',
                     'keywords': ['AI', 'future'],
-                    'tone': 'excited',
-                    'time_of_day': 'morning'
+                    'tone': 'excited'
                 })
             }]
         }
@@ -39,6 +38,9 @@ class TestContentGenerator(unittest.TestCase):
         self.env_patcher = patch.dict('os.environ', {
             'OPENAI_API_KEY': 'test-key',
             'OPENAI_MODEL': 'gpt-4',
+            'CONTENT_TOPIC': 'sample topic',
+            'CONTENT_KEYWORDS': 'word1, word2, word3',
+            'CONTENT_TONE': 'conversational, witty, insightful',
             'X_CONSUMER_KEY': 'test-consumer-key',
             'X_CONSUMER_SECRET': 'test-consumer-secret',
             'X_ACCESS_TOKEN': 'test-access-token',
@@ -110,12 +112,6 @@ class TestContentGenerator(unittest.TestCase):
         self.assertIn('AI', prompt)
         self.assertIn('excited', prompt)
 
-    def test_build_prompt_schedule(self):
-        prompt = build_prompt(self.schedule_event, 'schedule', self.prompt_template)
-
-        self.assertIn('morning', prompt)
-        self.assertIn('daily update', prompt)
-
     @patch('x_poster.tweepy')
     def test_post_to_x(self, mock_tweepy):
         # Mock tweepy client
@@ -144,6 +140,10 @@ class TestContentGenerator(unittest.TestCase):
 
         for var in required_vars:
             self.assertIn(var, os.environ)
+
+    def test_build_prompt_schedule(self):
+        prompt = build_prompt(self.schedule_event, 'schedule', self.prompt_template)
+        self.assertIn('sample topic', prompt)
 
     @patch('main.openai')
     @patch('main.post_to_x')
