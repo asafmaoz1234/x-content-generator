@@ -15,12 +15,14 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
         topic = message.get('topic', 'general')
         keywords = message.get('keywords', [])
         tone = message.get('tone', 'professional')
+        min_char_count = message.get('min_char_count', '100')
 
         logger.info('Building SQS prompt',
                     extra={'extra_data': {
                         'topic': topic,
                         'keywords': keywords,
-                        'tone': tone
+                        'tone': tone,
+                        'min_char_count': min_char_count
                     }})
 
         # Format the template with the message data
@@ -34,6 +36,7 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
         topic = os.environ['CONTENT_TOPIC']
         keywords = os.environ['CONTENT_KEYWORDS']
         tone = os.environ['CONTENT_TONE']
+        min_char_count = os.environ['CONTENT_MIN_CHARACTERS']
         logger.info('Building scheduled prompt',
                     extra={'extra_data': {
                         'topic': topic
@@ -43,7 +46,8 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
         formatted_prompt = template.format(
             topic=topic,
             keywords=keywords,
-            tone=tone
+            tone=tone,
+            min_char_count=min_char_count
         )
 
     logger.info('Prompt building completed',

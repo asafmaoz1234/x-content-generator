@@ -41,6 +41,7 @@ class TestContentGenerator(unittest.TestCase):
             'CONTENT_TOPIC': 'sample topic',
             'CONTENT_KEYWORDS': 'word1, word2, word3',
             'CONTENT_TONE': 'conversational, witty, insightful',
+            'CONTENT_MIN_CHARACTERS': '100',
             'X_CONSUMER_KEY': 'test-consumer-key',
             'X_CONSUMER_SECRET': 'test-consumer-secret',
             'X_ACCESS_TOKEN': 'test-access-token',
