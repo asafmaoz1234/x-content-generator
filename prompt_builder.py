@@ -52,5 +52,6 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
 
     logger.info('Prompt building completed',
                 extra={'extra_data': {'prompt_length': len(formatted_prompt)}})
-
+    logger.info('Prompt building completed',
+                extra={'extra_data': {'prompt': formatted_prompt}})
     return formatted_prompt

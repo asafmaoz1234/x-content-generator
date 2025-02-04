@@ -18,23 +18,42 @@ def post_to_x(content: str) -> str:
             access_token_secret=os.environ['X_ACCESS_TOKEN_SECRET']
         )
 
-        logger.info('Validating API credentials')
+        logger.info('Validating API credentials and permissions')
         try:
             # Test API credentials by getting account info
-            client.get_me()
-            logger.info('API credentials validated successfully')
+            me = client.get_me()
+            logger.info('Basic API credentials validated',
+                        extra={'extra_data': {'username': me.data.username}})
+
+            # Test write permissions with a dummy tweet attempt
+            # We'll delete it immediately if it succeeds
+            test_tweet = client.create_tweet(text="Testing write permissions...")
+            client.delete_tweet(test_tweet.data['id'])
+            logger.info('Write permissions validated successfully')
+
         except tweepy.errors.Unauthorized:
             logger.error('Invalid API credentials')
             raise Exception('Invalid X API credentials. Please check your keys and tokens.')
         except tweepy.errors.Forbidden as e:
-            logger.error(f'API permission error: {str(e)}')
-            raise Exception('X API permission error. Please check your app permissions in the Twitter Developer Portal.')
+            error_msg = str(e)
+            if 'write' in error_msg.lower():
+                logger.error('Missing write permissions',
+                             extra={'extra_data': {'error': error_msg}})
+                raise Exception(
+                    'Your app lacks write permissions. Please enable write permissions '
+                    'in the Twitter Developer Portal and regenerate your tokens.'
+                )
+            else:
+                logger.error(f'API permission error: {error_msg}')
+                raise Exception(
+                    'X API permission error. Please check your app permissions '
+                    'in the Twitter Developer Portal.'
+                )
 
-        logger.info('Posting content to X',
-                    extra={'extra_data': {'content_length': len(content)}})
-
-        # Post to X
+        # Post actual content to X
         try:
+            logger.info('Posting content to X',
+                        extra={'extra_data': {'content': content}})
             response = client.create_tweet(text=content)
 
             post_id = response.data['id']
@@ -49,7 +68,10 @@ def post_to_x(content: str) -> str:
                              'error_code': getattr(e, 'api_codes', []),
                              'error_messages': getattr(e, 'api_messages', [])
                          }})
-            raise Exception(f'Failed to post tweet. Error: {str(e)}')
+            raise Exception(
+                f'Failed to post tweet. Error: {str(e)}. '
+                'Please verify your app has write permissions enabled.'
+            )
 
     except Exception as e:
         logger.error('Error in X posting process',
