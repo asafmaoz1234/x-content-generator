@@ -4,6 +4,8 @@ from typing import Dict, Any
 import openai
 from datetime import datetime
 
+import tweepy
+
 from prompt_builder import build_prompt
 from x_poster import post_to_x
 from logger_util import logger
@@ -68,9 +70,17 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
         logger.info('Content generated successfully',
                     extra={'extra_data': {'content_length': len(content)}})
 
+        # Initialize X API client
+        x_client = tweepy.Client(
+            consumer_key=os.environ['X_CONSUMER_KEY'],
+            consumer_secret=os.environ['X_CONSUMER_SECRET'],
+            access_token=os.environ['X_ACCESS_TOKEN'],
+            access_token_secret=os.environ['X_ACCESS_TOKEN_SECRET']
+        )
+
         # Post to X
         logger.info('Posting content to X')
-        post_id = post_to_x(content)
+        post_id = post_to_x(x_client, content, reply_id, author_id)
         logger.info('Successfully posted to X',
                     extra={'extra_data': {'post_id': post_id}})
 

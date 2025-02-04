@@ -1,23 +1,14 @@
-import os
 import tweepy
 from logger_util import logger
 
 
-def post_to_x(content: str) -> str:
+def post_to_x(client: tweepy.Client, content: str, reply_id: str, author_id: str) -> str:
     """
     Posts content to X using the Tweepy library.
     """
     logger.info('Initializing X API client')
 
     try:
-        # Initialize X API client
-        client = tweepy.Client(
-            consumer_key=os.environ['X_CONSUMER_KEY'],
-            consumer_secret=os.environ['X_CONSUMER_SECRET'],
-            access_token=os.environ['X_ACCESS_TOKEN'],
-            access_token_secret=os.environ['X_ACCESS_TOKEN_SECRET']
-        )
-
         logger.info('Validating API credentials and permissions')
         try:
             # Test API credentials by getting account info
@@ -43,12 +34,31 @@ def post_to_x(content: str) -> str:
                     'X API permission error. Please check your app permissions '
                     'in the Twitter Developer Portal.'
                 )
-
+        # Fetch author username for a post reply
+        if author_id:
+            try:
+                author = client.get_user(id=author_id)
+                username = author.data.username
+                # Add @username mention at the start of the content
+                content = f"@{username} {content}"
+            except Exception as e:
+                logger.error('Error fetching author username',
+                             extra={'extra_data': {
+                                 'author_id': author_id,
+                                 'error': str(e)
+                             }})
+                raise Exception('Failed to fetch author username. Please verify the author ID.')
         # Post actual content to X
         try:
             logger.info('Posting content to X',
                         extra={'extra_data': {'content': content}})
-            response = client.create_tweet(text=content)
+
+            post_details = {}
+            # add details to post a response to a tweet
+            if reply_id and author_id:
+                post_details['in_reply_to_tweet_id'] = reply_id
+            post_details = {'text': content}
+            response = client.create_tweet(**post_details)
 
             post_id = response.data['id']
             logger.info('Successfully posted to X',
