@@ -102,6 +102,7 @@ If you're on Windows or experiencing issues with the direct installation method:
    COPY prompt_builder.py .
    COPY x_poster.py .
    COPY logger_util.py .
+   COPY prompts/social_media_prompt.txt ./prompts/
    
    RUN zip -r function.zip .
    ```
