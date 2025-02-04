@@ -25,12 +25,6 @@ def post_to_x(content: str) -> str:
             logger.info('Basic API credentials validated',
                         extra={'extra_data': {'username': me.data.username}})
 
-            # Test write permissions with a dummy tweet attempt
-            # We'll delete it immediately if it succeeds
-            test_tweet = client.create_tweet(text="Testing write permissions...")
-            client.delete_tweet(test_tweet.data['id'])
-            logger.info('Write permissions validated successfully')
-
         except tweepy.errors.Unauthorized:
             logger.error('Invalid API credentials')
             raise Exception('Invalid X API credentials. Please check your keys and tokens.')

@@ -2,6 +2,8 @@
 
 This AWS Lambda function automatically generates and posts content to X (formerly Twitter) based on SQS messages or scheduled EventBridge events. It uses OpenAI's GPT-4 to generate engaging content based on provided prompts.
 
+## Read more about this project: [ai-powered-x-bot](https://asafmaoz.com/projects/ai-powered-x-bot.html)
+
 ## Features
 
 - Processes both SQS messages and EventBridge scheduled events
