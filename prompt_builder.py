@@ -32,7 +32,29 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
             tone=tone,
             min_char_count=min_char_count
         )
+    elif event_type == 'sqs-reply':
+        post = message.get('post', '')
+        reply = message.get('reply', '')
+        topic = message.get('topic', 'general')
+        keywords = message.get('keywords', [])
+        tone = message.get('tone', 'professional')
+        min_char_count = message.get('min_char_count', '100')
 
+        logger.info('Building SQS prompt',
+                    extra={'extra_data': {
+                        'topic': topic,
+                        'keywords': keywords,
+                        'tone': tone,
+                        'min_char_count': min_char_count
+                    }})
+        formatted_prompt = template.format(
+            post=post,
+            reply=reply,
+            topic=topic,
+            keywords=', '.join(keywords),
+            tone=tone,
+            min_char_count=min_char_count
+        )
     else:  # schedule event or manual invocation
         topic = os.environ['CONTENT_TOPIC']
         keywords = os.environ['CONTENT_KEYWORDS']

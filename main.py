@@ -11,14 +11,22 @@ from x_poster import post_to_x
 from logger_util import logger
 
 
-def load_prompt_template() -> str:
-    """Load the prompt template from file."""
+def load_prompt_template(template_type: str = 'post') -> str:
+    """
+    Load the prompt template from file.
+
+    Args:
+        template_type: Either 'post' or 'reply' to load appropriate template
+    """
     try:
-        with open('prompts/social_media_prompt.txt', 'r') as file:
+        filename = 'prompts/social_media_prompt.txt' if template_type == 'post' else 'prompts/reply_prompt.txt'
+        with open(filename, 'r') as file:
             return file.read()
     except Exception as e:
-        logger.error(f'Error loading prompt template: {str(e)}')
-        # Fallback to basic prompt if file can't be loaded
+        logger.error(f'Error loading {template_type} template: {str(e)}')
+        # Fallback prompts
+        if template_type == 'reply':
+            return "You are a social media manager.\nCreate a friendly reply to: {content}\nTone: {tone}"
         return "You are a social media content creator.\nCreate a post about {topic}.\nTone: {tone}"
 
 
@@ -37,13 +45,20 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
 
         # Load prompt template
         prompt_template = load_prompt_template()
-
+        reply_id, author_id = None, None
         # Determine event source and extract relevant data
         if 'Records' in event:  # SQS event
             message = json.loads(event['Records'][0]['body'])
+            message_id = event['Records'][0].get('messageId')
+            logger.info('Processing SQS message', extra={'extra_data': {'message_id': message_id}})
             event_type = 'sqs'
+            if 'reply_id' in message:
+                event_type = 'sqs-reply'
+                reply_id = message.get('reply_id')
+                author_id = message.get('author_id')
             logger.info('Processing SQS message',
-                        extra={'extra_data': {'message_id': event['Records'][0].get('messageId')}})
+                        extra={'extra_data': {'message_id': event['Records'][0].get('messageId'),
+                                              'reply_id': reply_id, 'author_id': author_id}})
         else:  # EventBridge scheduled event
             message = event
             event_type = 'schedule'
@@ -51,6 +66,7 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
                         extra={'extra_data': {'event_id': event.get('id')}})
 
         # Build prompt based on event data
+        # check to build reply
         logger.info('Building prompt', extra={'extra_data': {'event_type': event_type}})
         prompt = build_prompt(message, event_type, prompt_template)
 
