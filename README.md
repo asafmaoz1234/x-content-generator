@@ -28,6 +28,10 @@ X_CONSUMER_KEY=your_x_consumer_key
 X_CONSUMER_SECRET=your_x_consumer_secret
 X_ACCESS_TOKEN=your_x_access_token
 X_ACCESS_TOKEN_SECRET=your_x_access_token_secret
+CONTENT_KEYWORDS=keywords_to_include  # comma-separated list of keywords
+CONTENT_MIN_CHARACTERS=minimum_characters  # minimum content length
+CONTENT_TONE=content_tone  # tone of the content
+CONTENT_TOPIC=content_topic  # topic of the content
 ```
 
 ## Installation
