@@ -29,7 +29,8 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
         formatted_prompt = template.format(
             topic=topic,
             keywords=', '.join(keywords),
-            tone=tone
+            tone=tone,
+            min_char_count=min_char_count
         )
 
     else:  # schedule event or manual invocation

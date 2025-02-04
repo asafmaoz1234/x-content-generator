@@ -45,7 +45,18 @@ CONTENT_TOPIC=content_topic  # topic of the content
 ## Deployment
 
 ### Creating the Lambda Deployment Package
+#### Preferred Method:
+1. grant execute permission to the build script (one time):
+   ```bash
+   chmod +x build-dep-zip.sh
+   ```
+2. Run the build script:
+```bash
+./build-dep-zip
+```
+3. use the generated function.zip file for deployment
 
+#### Manual Method:
 1. Create a fresh directory for your deployment package:
    ```bash
    mkdir -p deployment-package/prompts
@@ -129,22 +140,17 @@ python -m unittest discover tests
 
 ### AWS Lambda Test Events
 
-SQS message test event:
+- SQS message test event:
 ```json
 {
     "Records": [{
-        "body": "{\"topic\":\"technology\",\"keywords\":[\"AI\",\"future\"],\"tone\":\"excited\"}"
+        "body": "{\"topic\":\"technology\",\"keywords\":[\"AI\",\"future\"],\"tone\":\"excited\",\"min_char_count\":\"100\"}"
     }]
 }
 ```
 
-EventBridge test event:
-```json
-{
-   "time": "morning",
-   "detail-type": "Scheduled Event"
-}
-```
+- EventBridge uses the env parameters to generate the prompt:
+
 
 ## Contributing
 
