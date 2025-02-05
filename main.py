@@ -6,6 +6,7 @@ from datetime import datetime
 
 import tweepy
 
+import reply_x_util
 from prompt_builder import build_prompt
 from x_poster import post_to_x
 from logger_util import logger
@@ -43,9 +44,15 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
         openai.api_key = os.environ['OPENAI_API_KEY']
         model = os.environ.get('OPENAI_MODEL', 'gpt-4')  # Default to gpt-4 if not specified
 
-        # Load prompt template
-        prompt_template = load_prompt_template()
-        reply_id, author_id = None, None
+        # Initialize X API client
+        x_client = tweepy.Client(
+            consumer_key=os.environ['X_CONSUMER_KEY'],
+            consumer_secret=os.environ['X_CONSUMER_SECRET'],
+            access_token=os.environ['X_ACCESS_TOKEN'],
+            access_token_secret=os.environ['X_ACCESS_TOKEN_SECRET']
+        )
+
+        reply_id, post_reply_txt = None, None
         # Determine event source and extract relevant data
         if 'Records' in event:  # SQS event
             message = json.loads(event['Records'][0]['body'])
@@ -55,20 +62,21 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
             if 'reply_id' in message:
                 event_type = 'sqs-reply'
                 reply_id = message.get('reply_id')
-                author_id = message.get('author_id')
+                post_reply_txt = reply_x_util.fetch_post_text(x_client, reply_id)
             logger.info('Processing SQS message',
                         extra={'extra_data': {'message_id': event['Records'][0].get('messageId'),
-                                              'reply_id': reply_id, 'author_id': author_id}})
+                                              'reply_id': reply_id}})
         else:  # EventBridge scheduled event
             message = event
             event_type = 'schedule'
             logger.info('Processing EventBridge event',
                         extra={'extra_data': {'event_id': event.get('id')}})
 
+        # Load prompt template
+        prompt_template = load_prompt_template(event_type)
         # Build prompt based on event data
-        # check to build reply
         logger.info('Building prompt', extra={'extra_data': {'event_type': event_type}})
-        prompt = build_prompt(message, event_type, prompt_template)
+        prompt = build_prompt(message, event_type, prompt_template, post_reply_txt)
 
         # Generate content using OpenAI
         logger.info('Calling OpenAI API', extra={'extra_data': {'model': model}})
@@ -86,17 +94,9 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
         logger.info('Content generated successfully',
                     extra={'extra_data': {'content_length': len(content)}})
 
-        # Initialize X API client
-        x_client = tweepy.Client(
-            consumer_key=os.environ['X_CONSUMER_KEY'],
-            consumer_secret=os.environ['X_CONSUMER_SECRET'],
-            access_token=os.environ['X_ACCESS_TOKEN'],
-            access_token_secret=os.environ['X_ACCESS_TOKEN_SECRET']
-        )
-
         # Post to X
         logger.info('Posting content to X')
-        post_id = post_to_x(x_client, content, reply_id, author_id)
+        post_id = post_to_x(x_client, content, reply_id)
         logger.info('Successfully posted to X',
                     extra={'extra_data': {'post_id': post_id}})
 

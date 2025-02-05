@@ -3,7 +3,7 @@ from typing import Dict, Any
 from logger_util import logger
 
 
-def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str:
+def build_prompt(message: Dict[Any, Any], event_type: str, template: str, post_reply_txt: str) -> str:
     """
     Builds a prompt for OpenAI based on the event data and template.
     """
@@ -34,22 +34,16 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
         )
     elif event_type == 'sqs-reply':
         post = message.get('post', '')
-        reply = message.get('reply', '')
         topic = message.get('topic', 'general')
         keywords = message.get('keywords', [])
         tone = message.get('tone', 'professional')
         min_char_count = message.get('min_char_count', '100')
 
-        logger.info('Building SQS prompt',
-                    extra={'extra_data': {
-                        'topic': topic,
-                        'keywords': keywords,
-                        'tone': tone,
-                        'min_char_count': min_char_count
-                    }})
+        logger.info('Building SQS-reply prompt', extra={'extra_data': {
+                        'topic': topic, 'keywords': keywords, 'tone': tone, 'min_char_count': min_char_count}})
         formatted_prompt = template.format(
             post=post,
-            reply=reply,
+            reply=post_reply_txt,
             topic=topic,
             keywords=', '.join(keywords),
             tone=tone,
@@ -73,8 +67,6 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
             min_char_count=min_char_count
         )
 
-    logger.info('Prompt building completed',
-                extra={'extra_data': {'prompt_length': len(formatted_prompt)}})
     logger.info('Prompt building completed',
                 extra={'extra_data': {'prompt': formatted_prompt}})
     return formatted_prompt
