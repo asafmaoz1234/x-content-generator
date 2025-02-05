@@ -22,11 +22,15 @@ cp ../prompt_builder.py .
 cp ../x_poster.py .
 cp ../logger_util.py .
 cp ../prompts/social_media_prompt.txt ./prompts/
+cp ../prompts/reply_prompt.txt ./prompts/
 
 # Create zip file
 zip -r ../function.zip .
 
 # Go back to original directory
 cd ..
+
+# Remove deployment package
+rm -r deployment-package
 
 echo "Deployment package created: function.zip"
