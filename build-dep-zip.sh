@@ -21,6 +21,7 @@ cp ../main.py .
 cp ../prompt_builder.py .
 cp ../x_poster.py .
 cp ../logger_util.py .
+cp ../reply_x_util.py .
 cp ../prompts/social_media_prompt.txt ./prompts/
 cp ../prompts/reply_prompt.txt ./prompts/
 

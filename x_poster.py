@@ -6,7 +6,6 @@ def post_to_x(client: tweepy.Client, content: str, reply_id: str) -> str:
     """
     Posts content to X using the Tweepy library.
     """
-    logger.info('Initializing X API client')
 
     try:
         logger.info('Validating API credentials and permissions')

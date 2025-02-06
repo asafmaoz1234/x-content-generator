@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, Any
+from typing import Dict, Any, List
 import openai
 from datetime import datetime
 
@@ -31,6 +31,53 @@ def load_prompt_template(template_type: str = 'post') -> str:
         return "You are a social media content creator.\nCreate a post about {topic}.\nTone: {tone}"
 
 
+def process_reply_thread(client: tweepy.Client, message: Dict[Any, Any], thread: Dict, model: str, prompt_template: str) -> Dict:
+    """
+    Process a single reply thread by generating and posting a response.
+    """
+    try:
+        # Get the last reply in the thread
+        last_reply = thread[-1]
+
+        # Build prompt with thread context
+        message['reply_text'] = last_reply['text']
+        message['thread_context'] = [reply['text'] for reply in thread]
+        logger.info('Building prompt with thread context',
+                    extra={'extra_data': {'reply_text': message['reply_text'],
+                                          'thread_context': message['thread_context']}})
+        prompt = build_prompt(message, 'sqs-reply', prompt_template)
+        logger.info('Prompt reply:', extra={'extra_data': {'prompt': prompt}})
+
+        # Generate response using OpenAI
+        response = openai.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": prompt}
+            ],
+            max_tokens=280,
+            temperature=0.7
+        )
+
+        content = response.choices[0].message.content.strip()
+
+        # Post the reply
+        post_id = post_to_x(client, content, last_reply['id'])
+
+        return {
+            'reply_id': last_reply['id'],
+            'response_id': post_id,
+            'content': content
+        }
+
+    except Exception as e:
+        logger.error('Error processing reply thread',
+                     extra={'extra_data': {
+                         'reply_id': last_reply.get('id'),
+                         'error': str(e)
+                     }})
+        raise
+
+
 def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
     """
     AWS Lambda handler that processes SQS messages or EventBridge events,
@@ -42,7 +89,7 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
     try:
         # Initialize OpenAI client
         openai.api_key = os.environ['OPENAI_API_KEY']
-        model = os.environ.get('OPENAI_MODEL', 'gpt-4')  # Default to gpt-4 if not specified
+        model = os.environ.get('OPENAI_MODEL', 'gpt-4')
 
         # Initialize X API client
         x_client = tweepy.Client(
@@ -52,53 +99,88 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
             access_token_secret=os.environ['X_ACCESS_TOKEN_SECRET']
         )
 
-        reply_id, post_reply_txt = None, None
-        # Determine event source and extract relevant data
+        # Process based on event type
         if 'Records' in event:  # SQS event
             message = json.loads(event['Records'][0]['body'])
             message_id = event['Records'][0].get('messageId')
-            logger.info('Processing SQS message', extra={'extra_data': {'message_id': message_id}})
-            event_type = 'sqs'
-            if 'reply_id' in message:
-                event_type = 'sqs-reply'
-                reply_id = message.get('reply_id')
-                post_reply_txt = reply_x_util.fetch_post_text(x_client, reply_id)
             logger.info('Processing SQS message',
-                        extra={'extra_data': {'message_id': event['Records'][0].get('messageId'),
-                                              'reply_id': reply_id}})
-        else:  # EventBridge scheduled event
+                        extra={'extra_data': {'message_id': message_id}})
+
+            if 'post_id' in message:  # Handle reply event
+                logger.info('Processing SQS REPLY message',
+                            extra={'extra_data': {'message': message}})
+                post_id = message.get('post_id')
+                original_author_id = message.get('original_author_id')
+
+                # Get all reply threads needing response
+                reply_threads = reply_x_util.fetch_replies_to_post(post_id, original_author_id)
+
+                if not reply_threads:
+                    logger.info('No replies requiring response',
+                                extra={'extra_data': {'post_id': post_id}})
+                    return {
+                        'statusCode': 200,
+                        'body': json.dumps({
+                            'message': 'No replies requiring response',
+                            'timestamp': datetime.utcnow().isoformat()
+                        })
+                    }
+
+                # Load reply prompt template
+                prompt_template = load_prompt_template('reply')
+                errors = None
+                # Process each thread
+                processed_replies = []
+                for thread in reply_threads:
+                    try:
+                        result = process_reply_thread(x_client, message, thread, model, prompt_template)
+                        processed_replies.append(result)
+                        logger.info('Successfully processed reply thread',
+                                    extra={'extra_data': result})
+                    except Exception as e:
+                        logger.error('Error processing reply thread',
+                                     extra={'extra_data': {
+                                         'error': str(e),
+                                         'thread': thread
+                                     }})
+                        errors = errors + e
+                        continue  # Continue with next thread even if one fails
+
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps({
+                        'message': 'Successfully processed reply threads',
+                        'processed_replies': processed_replies,
+                        'errors': str(errors),
+                        'timestamp': datetime.utcnow().isoformat()
+                    })
+                }
+
+            else:
+                # Handle regular post
+                event_type = 'sqs'
+        else:
+            # Handle scheduled post
             message = event
             event_type = 'schedule'
             logger.info('Processing EventBridge event',
                         extra={'extra_data': {'event_id': event.get('id')}})
 
-        # Load prompt template
-        prompt_template = load_prompt_template(event_type)
-        # Build prompt based on event data
-        logger.info('Building prompt', extra={'extra_data': {'event_type': event_type}})
-        prompt = build_prompt(message, event_type, prompt_template, post_reply_txt)
+        # Handle regular post logic
+        prompt_template = load_prompt_template('post')
+        prompt = build_prompt(message, event_type, prompt_template)
 
-        # Generate content using OpenAI
-        logger.info('Calling OpenAI API', extra={'extra_data': {'model': model}})
         response = openai.chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": prompt}
             ],
-            max_tokens=280,  # X character limit
+            max_tokens=280,
             temperature=0.7
         )
 
-        # Extract generated content
         content = response.choices[0].message.content.strip()
-        logger.info('Content generated successfully',
-                    extra={'extra_data': {'content_length': len(content)}})
-
-        # Post to X
-        logger.info('Posting content to X')
-        post_id = post_to_x(x_client, content, reply_id)
-        logger.info('Successfully posted to X',
-                    extra={'extra_data': {'post_id': post_id}})
+        post_id = post_to_x(x_client, content)
 
         return {
             'statusCode': 200,

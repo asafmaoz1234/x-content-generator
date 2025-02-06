@@ -3,7 +3,7 @@ from typing import Dict, Any
 from logger_util import logger
 
 
-def build_prompt(message: Dict[Any, Any], event_type: str, template: str, post_reply_txt: str) -> str:
+def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str:
     """
     Builds a prompt for OpenAI based on the event data and template.
     """
@@ -43,7 +43,8 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str, post_r
                         'topic': topic, 'keywords': keywords, 'tone': tone, 'min_char_count': min_char_count}})
         formatted_prompt = template.format(
             post=post,
-            reply=post_reply_txt,
+            reply=message.get('reply_text', ''),
+            previous_conversation=message.get('thread_context'),
             topic=topic,
             keywords=', '.join(keywords),
             tone=tone,
