@@ -7,7 +7,7 @@ deployment-package/*
 .idea/*
 .idea
 .idea/workspace.xml
-prompts/*
+
 
 
 # Virtual environment
