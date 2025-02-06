@@ -2,7 +2,7 @@ import tweepy
 from logger_util import logger
 
 
-def post_to_x(client: tweepy.Client, content: str, reply_id: str) -> str:
+def post_to_x(client: tweepy.Client, content: str, reply_id: str = None) -> str:
     """
     Posts content to X using the Tweepy library.
     """
@@ -45,8 +45,7 @@ def post_to_x(client: tweepy.Client, content: str, reply_id: str) -> str:
             post_details['text'] = content
 
             logger.info('Posting content to X',
-                        extra={'extra_data': {'content': post_details['text'],
-                                              'reply_id': post_details['in_reply_to_tweet_id']}})
+                        extra={'extra_data': {'content': post_details['text']}})
             response = client.create_tweet(**post_details)
 
             post_id = response.data['id']

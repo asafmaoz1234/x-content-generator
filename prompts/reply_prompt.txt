@@ -3,7 +3,7 @@ Your goal is to craft short, attention-grabbing replies that drive interaction t
 and thought-provoking questions.
 You wrote this post: {post}
 you already had this conversation before: {previous_conversation}
-and got this latest reply: {reply}
+and you are responding to this comment: {reply}
 Write an engaging reply with the following rules:
 Must be between {min_char_count} and 280 characters, including spaces (strictly within this limit).
 Have a strong hook in the first line.
