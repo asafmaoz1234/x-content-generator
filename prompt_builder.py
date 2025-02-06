@@ -7,8 +7,7 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
     """
     Builds a prompt for OpenAI based on the event data and template.
     """
-    logger.info('Starting prompt building',
-                extra={'extra_data': {'event_type': event_type}})
+    logger.info('Starting prompt building', extra={'extra_data': {'event_type': event_type}})
 
     if event_type == 'sqs':
         # Extract relevant fields from SQS message
@@ -38,10 +37,7 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
         keywords = os.environ['CONTENT_KEYWORDS']
         tone = os.environ['CONTENT_TONE']
         min_char_count = os.environ['CONTENT_MIN_CHARACTERS']
-        logger.info('Building scheduled prompt',
-                    extra={'extra_data': {
-                        'topic': topic
-                    }})
+        logger.info('Building scheduled prompt', extra={'extra_data': {'topic': topic}})
 
         # Format the template with schedule data
         formatted_prompt = template.format(
@@ -50,9 +46,5 @@ def build_prompt(message: Dict[Any, Any], event_type: str, template: str) -> str
             tone=tone,
             min_char_count=min_char_count
         )
-
-    logger.info('Prompt building completed',
-                extra={'extra_data': {'prompt_length': len(formatted_prompt)}})
-    logger.info('Prompt building completed',
-                extra={'extra_data': {'prompt': formatted_prompt}})
+    logger.info('Prompt building completed', extra={'extra_data': {'prompt': formatted_prompt}})
     return formatted_prompt

@@ -3,7 +3,6 @@ import os
 from typing import Dict, Any
 import openai
 from datetime import datetime
-
 from prompt_builder import build_prompt
 from x_poster import post_to_x
 from logger_util import logger
@@ -31,7 +30,7 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
     try:
         # Initialize OpenAI client
         openai.api_key = os.environ['OPENAI_API_KEY']
-        model = os.environ.get('OPENAI_MODEL', 'gpt-4')  # Default to gpt-4 if not specified
+        model = os.environ.get('OPENAI_MODEL', 'gpt-4')
 
         # Load prompt template
         prompt_template = load_prompt_template()
@@ -40,16 +39,13 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
         if 'Records' in event:  # SQS event
             message = json.loads(event['Records'][0]['body'])
             event_type = 'sqs'
-            logger.info('Processing SQS message',
-                        extra={'extra_data': {'message_id': event['Records'][0].get('messageId')}})
+            logger.info('Processing SQS message', extra={'extra_data': {'message': message}})
         else:  # EventBridge scheduled event
             message = event
             event_type = 'schedule'
-            logger.info('Processing EventBridge event',
-                        extra={'extra_data': {'event_id': event.get('id')}})
+            logger.info('Processing EventBridge event', extra={'extra_data': {'event_id': event.get('id')}})
 
         # Build prompt based on event data
-        logger.info('Building prompt', extra={'extra_data': {'event_type': event_type}})
         prompt = build_prompt(message, event_type, prompt_template)
 
         # Generate content using OpenAI
@@ -65,14 +61,12 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
 
         # Extract generated content
         content = response.choices[0].message.content.strip()
-        logger.info('Content generated successfully',
-                    extra={'extra_data': {'content_length': len(content)}})
+        logger.info('Content generated successfully', extra={'extra_data': {'content': content}})
 
         # Post to X
         logger.info('Posting content to X')
         post_id = post_to_x(content)
-        logger.info('Successfully posted to X',
-                    extra={'extra_data': {'post_id': post_id}})
+        logger.info('Successfully posted to X', extra={'extra_data': {'post_id': post_id}})
 
         return {
             'statusCode': 200,
@@ -85,9 +79,7 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
         }
 
     except Exception as e:
-        logger.error('Error in lambda execution',
-                     extra={'extra_data': {'error': str(e)}},
-                     exc_info=True)
+        logger.error('Error in lambda execution', extra={'extra_data': {'error': str(e)}}, exc_info=True)
         return {
             'statusCode': 500,
             'body': json.dumps({

@@ -29,4 +29,7 @@ zip -r ../function.zip .
 # Go back to original directory
 cd ..
 
+# Remove deployment package
+rm -r deployment-package
+
 echo "Deployment package created: function.zip"

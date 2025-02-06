@@ -22,8 +22,7 @@ def post_to_x(content: str) -> str:
         try:
             # Test API credentials by getting account info
             me = client.get_me()
-            logger.info('Basic API credentials validated',
-                        extra={'extra_data': {'username': me.data.username}})
+            logger.info('Basic API credentials validated', extra={'extra_data': {'username': me.data.username}})
 
         except tweepy.errors.Unauthorized:
             logger.error('Invalid API credentials')
@@ -31,8 +30,7 @@ def post_to_x(content: str) -> str:
         except tweepy.errors.Forbidden as e:
             error_msg = str(e)
             if 'write' in error_msg.lower():
-                logger.error('Missing write permissions',
-                             extra={'extra_data': {'error': error_msg}})
+                logger.error('Missing write permissions', extra={'extra_data': {'error': error_msg}})
                 raise Exception(
                     'Your app lacks write permissions. Please enable write permissions '
                     'in the Twitter Developer Portal and regenerate your tokens.'
@@ -46,14 +44,11 @@ def post_to_x(content: str) -> str:
 
         # Post actual content to X
         try:
-            logger.info('Posting content to X',
-                        extra={'extra_data': {'content': content}})
+            logger.info('Posting content to X', extra={'extra_data': {'content': content}})
             response = client.create_tweet(text=content)
 
             post_id = response.data['id']
-            logger.info('Successfully posted to X',
-                        extra={'extra_data': {'post_id': post_id}})
-
+            logger.info('Successfully posted to X', extra={'extra_data': {'post_id': post_id}})
             return post_id
 
         except tweepy.errors.Forbidden as e:
