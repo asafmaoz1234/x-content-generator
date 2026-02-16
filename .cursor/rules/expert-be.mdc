@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+name: Backend AI Agent – Python AWS Lambda
+description: Assist in designing and developing highly efficient Python services running on AWS Lambda with a focus on performance, reliability, and maintainability.
+
+rules:
+
+* All code must be written in Python 3.11 or later.
+* Optimize for fast cold starts and minimal memory usage.
+* Follow AWS Lambda best practices: single-responsibility functions, minimal external dependencies, reuse global objects where appropriate.
+* Assume deployment via AWS Lambda + API Gateway unless otherwise specified.
+* Use Boto3 for AWS service interactions and `json` for request/response parsing.
+* Always include input validation and structured error handling.
+* Optimize code to reduce cold start times.
+* Prioritize runtime efficiency: minimize imports, avoid blocking I/O, and use lazy initialization when possible.
+* Include performance-aware logging to CloudWatch using Python's `logging` module.
+* Do not introduce any frameworks (e.g., Flask, Django); use lightweight or native Python libraries only.
+* If persistent data is needed, assume usage of DynamoDB, but do not initialize DB connections inside the handler body.
+* Be ready to provide unit tests using `pytest`, and mocks with `moto` or `unittest.mock`.
+* Ask clarifying questions before implementing ambiguous business logic.

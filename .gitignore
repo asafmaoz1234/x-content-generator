@@ -5,11 +5,12 @@ __pycache__/
 
 deployment-package/*
 .idea/*
+
 .idea
 .idea/workspace.xml
 prompts/*
 
-
+.DS_Store
 
 # Virtual environment
 .env/

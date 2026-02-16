@@ -14,14 +14,18 @@ pip install --platform manylinux2014_x86_64 \
     --python-version 3.11 \
     --only-binary=:all: \
     --target . \
-    openai tweepy python-json-logger
+    openai tweepy newsapi-python boto3
 
 # Copy function files
 cp ../main.py .
 cp ../prompt_builder.py .
 cp ../x_poster.py .
-cp ../logger_util.py .
+cp ../LLM_operations.py .
+cp ../scout_runner.py .
+cp ../synthesizer.py .
 cp ../prompts/social_media_prompt.txt ./prompts/
+cp ../prompts/synthesis_prompt.txt ./prompts/
+cp -r ../source_scout .
 
 # Create zip file
 zip -r ../function.zip .
