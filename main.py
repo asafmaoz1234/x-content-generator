@@ -11,7 +11,7 @@ from synthesizer import fetch_unused_candidates, synthesize_angle, validate_grou
 from source_scout import ScoutConfig, mark_candidate_used
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler = logging.StreamHandler()
@@ -58,9 +58,8 @@ def lambda_handler(event: Dict[Any, Any], context: Any) -> Dict[str, Any]:
         
         # Step 2: Synthesize angle from unused candidates
         synthesis_result = None
+        config = ScoutConfig.from_env()
         try:
-            config = ScoutConfig.from_env()
-            
             # Fetch unused candidates
             candidates = fetch_unused_candidates(config, days=7, max_candidates=20)
             

@@ -84,7 +84,7 @@ class TestSynthesisResult(unittest.TestCase):
                 {'fact': "Fact 1", 'source_url': "url1", 'source_name': "Source 1"}
             ],
             'draft_post': "Test post",
-            'source_urls': ["url1"]
+            'source_candidates_used': ["url1"]
         }
         
         result = SynthesisResult.from_dict(data)
@@ -93,6 +93,7 @@ class TestSynthesisResult(unittest.TestCase):
         self.assertEqual(result.hook, "Test hook")
         self.assertEqual(len(result.key_facts), 1)
         self.assertEqual(result.draft_post, "Test post")
+        self.assertEqual(len(result.source_candidates_used), 1)
 
 
 class TestConvertDecimals(unittest.TestCase):

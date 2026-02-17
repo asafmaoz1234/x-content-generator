@@ -5,7 +5,7 @@ from typing import Optional
 import time
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
@@ -28,7 +28,8 @@ def generate_content_with_retry(prompt: str, max_retries: int = 3) -> str:
     # Initialize OpenAI client
     openai.api_key = os.environ['OPENAI_API_KEY']
     model = os.environ.get('OPENAI_MODEL', 'gpt-4')
-    max_tokens = os.environ.get('CONTENT_MAX_CHARACTERS', 1500)
+    # Get character limit for content generation (not to be confused with OpenAI's max_tokens)
+    content_char_limit = int(os.environ.get('CONTENT_MAX_CHARACTERS', '1500'))
     
     last_exception = None
     
@@ -45,7 +46,8 @@ def generate_content_with_retry(prompt: str, max_retries: int = 3) -> str:
                 messages=[
                     {"role": "system", "content": prompt}
                 ],
-                max_tokens=max_tokens*2,  # X character limit
+                # Rough token estimate: ~4 chars per token, allow 2x buffer for safety
+                max_tokens=content_char_limit // 2,
                 temperature=0.7
             )
             

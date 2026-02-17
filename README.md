@@ -79,6 +79,7 @@ All variables are set in the **Lambda function configuration** (or in a local `.
 | `CONTENT_KEYWORDS` | Comma-separated keywords to include (e.g. `AI,LLM,GPT`) |
 | `CONTENT_TONE` | Desired tone (e.g. `insightful`, `excited`, `professional`) |
 | `CONTENT_MIN_CHARACTERS` | Minimum post length in characters (e.g. `100`) |
+| `CONTENT_MAX_CHARACTERS` | Maximum content length for generation (e.g. `1500`) - affects token limit |
 | `NEWSAPI_API_KEY` | NewsAPI.org API key |
 | `NEWS_CANDIDATES_TABLE` | DynamoDB table name for news candidates |
 

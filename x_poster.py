@@ -3,7 +3,7 @@ import tweepy
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler = logging.StreamHandler()
@@ -78,10 +78,16 @@ def split_into_thread(content: str) -> list:
     chunks = _split_into_chunks(content, effective_max)
 
     # Second pass: if chunk count changed, indicator length may differ — re-split
+    # Add safeguard to prevent infinite loop (max 3 iterations)
+    max_iterations = 3
+    iteration = 0
     actual_indicator_len = len(f" ({len(chunks)}/{len(chunks)})")
-    if actual_indicator_len != indicator_len:
+    while actual_indicator_len != indicator_len and iteration < max_iterations:
+        indicator_len = actual_indicator_len
         effective_max = MAX_TWEET_LENGTH - actual_indicator_len
         chunks = _split_into_chunks(content, effective_max)
+        actual_indicator_len = len(f" ({len(chunks)}/{len(chunks)})")
+        iteration += 1
 
     total = len(chunks)
     if total <= 1:

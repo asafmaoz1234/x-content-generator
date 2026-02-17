@@ -12,7 +12,7 @@ from source_scout.config import ScoutConfig
 from source_scout.normalizer import NewsCandidate
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler = logging.StreamHandler()
@@ -67,12 +67,14 @@ class SynthesisResult:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'SynthesisResult':
         """Create from dictionary."""
+        # Handle both 'source_candidates_used' and 'source_urls' for backward compatibility
+        source_urls = data.get('source_candidates_used', data.get('source_urls', []))
         return cls(
             angle=data['angle'],
             hook=data['hook'],
             key_facts=[SourceFact.from_dict(fact) for fact in data.get('key_facts', [])],
             draft_post=data.get('draft_post', ''),
-            source_candidates_used=data.get('source_candidates_used', [])
+            source_candidates_used=source_urls
         )
 
 

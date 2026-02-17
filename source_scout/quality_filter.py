@@ -8,7 +8,7 @@ import openai
 from typing import List, Dict
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
@@ -116,7 +116,7 @@ def check_title_clarity(title: str) -> bool:
             return False
     
     # Check for excessive punctuation
-    if '!!!' in title or '???' in title or '?!' in title * 2:
+    if '!!!' in title or '???' in title or '?!?!' in title:
         logger.debug('Title has excessive punctuation')
         return False
     
